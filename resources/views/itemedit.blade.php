@@ -954,6 +954,7 @@
                 console.log('remove file');
                 console.log(file);
                 // remove file from folder
+                // var filename = (typeof file.filename === "undefined") ? file.upload.filename : file.filename;
                 $.ajax({
                     type: 'POST',
                     url: "{{ url('image/delete') }}",
@@ -961,7 +962,7 @@
                         'X-CSRF-TOKEN': "{{ csrf_token() }}"
                     },
                     data: {
-                        filename: file.upload.filename,
+                        filename: file.filename,
                     },
                     sucess: function(data) {
                         console.log('removed success: ' + data);
@@ -985,6 +986,19 @@
                 this.on("maxfilesexceeded", function(file) { // Maximum file upload validations                   
                     alert("Maximum " + maxFiles + " files are allowed to upload...!");
                 });
+
+                // @if (isset($item) && $item->getImagesHasMany)
+                //     var files =
+                //         {!! json_encode($item->getImagesHasMany) !!}
+                //     for (var i in files) {
+                //         var file = files[i]
+                //         console.log('file')
+                //         console.log(file.image)
+                //         this.options.addedfile.call(this, file)
+                //         file.previewElement.classList.add('dz-complete')
+                //         $('form').append('<input type="hidden" name="document[]" value="' + file.image + '">')
+                //     }
+                // @endif
 
                 myDropzone = this;
                 $.ajax({

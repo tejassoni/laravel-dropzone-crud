@@ -904,7 +904,7 @@
                         </div>
 
                         <div>
-                            <button type="submit"
+                            <button type="submit" id="submit-all"
                                 class="inline-flex items-center px-4 py-2 my-3 text-xs font-semibold tracking-widest text-black uppercase transition duration-150 ease-in-out bg-gray-800 border border-transparent rounded-md hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25">
                                 Save
                             </button>
@@ -922,7 +922,9 @@
     <script type="text/javascript">
         var uploadedDocumentMap = {}
         Dropzone.options.documentDropzone = {
-            url: "{{ route('item.store') }}",
+            url: "{{ route('uploads') }}",
+            maxFiles: 3,
+            autoProcessQueue: false,
             maxFilesize: 2, // MB
             addRemoveLinks: true,
             headers: {
@@ -941,7 +943,26 @@
                     name = uploadedDocumentMap[file.name]
                 }
                 $('form').find('input[name="document[]"][value="' + name + '"]').remove()
-            }
+            },
+            maxfilesexceeded: function(file) {
+                this.removeAllFiles();
+                this.addFile(file);
+            },
+            init: function() {
+                this.on("maxfilesexceeded", function(file) {
+                    alert("No more files please!");
+                });
+
+                var submitButton = document.querySelector("#submit-all");
+                myDropzone = this;
+                submitButton.addEventListener("click", function() {
+                    if (myDropzone.getQueuedFiles().length >= 1) {
+                        myDropzone.processQueue();
+                    } else {
+                        alert("Not enough files!");
+                    }
+                });
+            },
         }
     </script>
 </body>

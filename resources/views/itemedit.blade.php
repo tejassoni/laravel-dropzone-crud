@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="_token" content="{{csrf_token()}}" />
-    <title>Item : Create</title>
+    <meta name="_token" content="{{ csrf_token() }}" />
+    <title>Item : Edit</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -839,7 +839,7 @@
 <body class="antialiased">
     <div class="max-w-7xl mx-auto p-6 lg:p-8">
         <div class="flex justify-center font-semibold text-xl text-gray-800 leading-tight">
-            Item Create
+            Item Edit
         </div>
     </div>
     <div class="py-12">
@@ -860,7 +860,7 @@
                         </div>
                     </div>
                 @endif
-                <form action="{{ route('item.store') }}" name="form-create" id="form-create" method="POST"
+                <form action="{{ route('item.update', $item->id) }}" name="form-edit" id="form-edit" method="POST"
                     enctype="multipart/form-data">
                     @csrf
                     <div class="mb-4">
@@ -868,7 +868,7 @@
                                 class="text-red-500 text-danger"> *
                             </span></label>
                         <input type="text" name="name" class="form-control" placeholder="Enter Name"
-                            maxlength="50" value="{{ old('name') }}">
+                            maxlength="100" value="{{ $item->name }}">
                         @error('name')
                             <span class="text-red-500 text-danger">{{ $message }}
                             </span>
@@ -880,7 +880,7 @@
                                 class="text-red-500 text-danger"> *
                             </span></label>
                         <input type="text" name="sku" class="form-control" placeholder="Enter SKU" maxlength="5"
-                            value="{{ old('sku') }}">
+                            value="{{ $item->sku }}">
                         @error('sku')
                             <span class="text-red-500 text-danger">{{ $message }}
                             </span>
@@ -892,7 +892,7 @@
                                 class="text-red-500 text-danger"> *
                             </span></label>
                         <input type="text" name="price" id="price" class="form-control"
-                            placeholder="Enter Price" maxlength="50" value="{{ old('price') }}">
+                            placeholder="Enter Price" maxlength="50" value="{{ $item->price }}">
                         @error('price')
                             <span class="text-red-500 text-danger">{{ $message }}
                             </span>
@@ -938,7 +938,7 @@
             renameFile: function(file) {
                 var dt = new Date();
                 var time = dt.getTime();
-               return time+file.name;
+                return time + file.name;
             },
             success: function(file, response) {
                 console.log('success calls');
@@ -952,7 +952,7 @@
             removedfile: function(file) {
                 console.log('remove calls');
                 console.log('remove file');
-                console.log(file);                                
+                console.log(file);
                 // remove file from folder
                 $.ajax({
                     type: 'POST',
@@ -961,7 +961,7 @@
                         'X-CSRF-TOKEN': "{{ csrf_token() }}"
                     },
                     data: {
-                        filename: file.upload.filename,                        
+                        filename: file.upload.filename,
                     },
                     sucess: function(data) {
                         console.log('removed success: ' + data);
@@ -986,17 +986,23 @@
                     alert("Maximum " + maxFiles + " files are allowed to upload...!");
                 });
 
-                // var submitButton = document.querySelector("#submit-all");
-                // myDropzone = this;
-                // submitButton.addEventListener("click", function() {
-                //     if (myDropzone.getQueuedFiles().length >= minFiles) {
-                //         //myDropzone.processQueue();
-                //         Dropzone.forElement(".dropzone").processQueue();
-                //     } else { // Minimum file upload validations
-                //         Dropzone.forElement(".dropzone").options.autoProcessQueue = false;
-                //         alert("Minimum "+minFiles+" file needs to upload...!");
-                //     }
-                // });
+                myDropzone = this;
+                $.ajax({
+                    url:"{{ url('readFiles') }}/{{ $item->id }}",
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(response) {
+                        $.each(response, function(key, value) {
+                            var mockFile = {
+                                name: value.name,
+                                size: value.size
+                            };
+                            myDropzone.emit("addedfile", mockFile);
+                            myDropzone.emit("thumbnail", mockFile, value.path);
+                            myDropzone.emit("complete", mockFile);
+                        });
+                    }
+                });
             },
             error: function(file, response) {
                 console.log('error calls')
@@ -1007,7 +1013,6 @@
                 return false;
             }
         }
-
     </script>
 </body>
 

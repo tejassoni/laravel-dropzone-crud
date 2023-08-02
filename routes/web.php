@@ -21,3 +21,5 @@ Route::get('/', function () {
 // Item Resource controller
 Route::resource('item', ItemController::class); 
 Route::post('uploads', [ItemController::class,'uploads'])->name('uploads');
+Route::get('readFiles/{id?}', [ItemController::class, 'readFiles'])->name('readFiles');
+Route::post('image/delete',[ItemController::class,'fileDestroy']);

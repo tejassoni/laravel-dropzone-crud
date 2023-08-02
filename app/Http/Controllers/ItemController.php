@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use App\Models\ItemImagePivot;
 use App\Http\Requests\ItemStoreRequest;
 
 class ItemController extends Controller
@@ -31,17 +32,19 @@ class ItemController extends Controller
      */
     public function store(ItemStoreRequest $request)
     {
-        $created = Item::create(['name' => $request->name, 'sku' => $request->sku, 'price' => $request->price]);
-
+       $created = Item::create(['name' => $request->name, 'sku' => $request->sku, 'price' => $request->price]);        
+        foreach ($request->input('document', []) as $file) {
+            //your file to be uploaded insert to database
+            ItemImagePivot::create(['item_id' => $created->id, 'image' => $file]);
+        }        
         if ($created) { // inserted success
             return redirect()->route('item.index')
-                ->withSuccess('Item created successfully...!');
+                ->withSuccess('Created successfully...!');
         }
-
         return redirect()
             ->back()
             ->withInput()
-            ->with('error', 'fails item not created..!');
+            ->with('error', 'fails not created..!');
     }
 
     /**
@@ -57,7 +60,7 @@ class ItemController extends Controller
      */
     public function edit(Item $item)
     {
-        //
+        return view('itemedit', compact('item'));
     }
 
     /**
@@ -79,16 +82,57 @@ class ItemController extends Controller
     public function uploads(Request $request)
     {
         $path = storage_path('tmp/uploads');
-
         !file_exists($path) && mkdir($path, 0777, true);
-
         $file = $request->file('file');
-        $name = uniqid() . '_' . trim($file->getClientOriginalName());
+        //$name = uniqid() . '_' . trim($file->getClientOriginalName());
+        $name = $file->getClientOriginalName();
         $file->move($path, $name);
-
         return response()->json([
-            'name'          => $name,
+            'name' => $name,
             'original_name' => $file->getClientOriginalName(),
         ]);
     }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function fileDestroy(Request $request)
+    {
+        $path = storage_path('tmp/uploads/') . $request->filename;
+        //$path = public_path() . '/images/' . $request->filename;
+        if (file_exists($path)) {
+            // ItemImagePivot::where('filename',$request->filename)->delete();
+            unlink($path);
+        }
+        return $request->filename;
+    }
+
+    /**
+     * Read the files resource from storage.
+     */
+    public function readFiles($id = ""){ 
+        $directory = 'uploads'; 
+        $files_info = []; 
+        $file_ext = array('png','jpg','jpeg','pdf'); 
+        
+        // Read files
+        foreach (File::allFiles(public_path($directory)) as $file) { 
+           $extension = strtolower($file->getExtension()); 
+       
+           if(in_array($extension,$file_ext)){ // Check file extension 
+              $filename = $file->getFilename(); 
+              $size = $file->getSize(); // Bytes 
+              $sizeinMB = round($size / (1000 * 1024), 2);// MB 
+            
+              if($sizeinMB <= 2){ // Check file size is <= 2 MB 
+                  $files_info[] = array( 
+                        "name" => $filename, 
+                        "size" => $size, 
+                        "path" => url($directory.'/'.$filename) 
+                  ); 
+              } 
+           } 
+        } 
+        return response()->json($files_info); 
+     }
 }

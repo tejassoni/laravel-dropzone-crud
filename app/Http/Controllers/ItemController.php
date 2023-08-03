@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ItemImagePivot;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\ItemStoreRequest;
+use App\Http\Requests\ItemUpdateRequest;
 
 class ItemController extends Controller
 {
@@ -53,38 +54,68 @@ class ItemController extends Controller
      */
     public function show(Item $item)
     {
-        //
+        $item->with('getImagesHasMany')->where('id',$item->id)->first();
+        return view('itemshow',compact('item'));        
     }
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit($id = "")
-    {        
-        $item = Item::with('getImagesHasMany')->where('id',$id)->first();
+    {
+        $item = Item::with('getImagesHasMany')->where('id', $id)->first();
         return view('itemedit', compact('item'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Item $item)
+    public function update(ItemUpdateRequest $request, Item $item)
     {
-        //
+        $item->update($request->all());
+        if ($request->has('document') && sizeof($request->get('document')) > 0) {
+
+            $media = ItemImagePivot::where('item_id', $item->id)->pluck('image')->toArray();
+
+            foreach ($request->input('document', []) as $file) {
+                if (count($media) === 0 || !in_array($file, $media)) {
+                    ItemImagePivot::create(['item_id' => $item->id, 'image' => $file]);
+                }
+            }
+        }
+        return redirect()->route('item.index')
+            ->withSuccess('Updated Successfully...!');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage and table.
      */
     public function destroy(Item $item)
     {
-        //
+        // delete item images from storage folder and item image table
+        $itemImages = ItemImagePivot::where('item_id', $item->id)->get();
+        if (isset($itemImages) && !empty($itemImages)) {
+            foreach ($itemImages as $imgVal) {                
+                $path = storage_path('app/public/images/') . $imgVal['image'];
+                //$path = public_path() . '/images/' . $request->filename;
+                if (file_exists($path)) {
+                    ItemImagePivot::where('image', $imgVal['image'])->delete();
+                    unlink($path);
+                }
+            } // Loops Ends
+        }
+        $item->delete();
+        return redirect()->route('item.index')
+            ->withSuccess('Deleted Successfully.');
     }
 
+    /**
+     * Upload the specified resource to storage.
+     */
     public function uploads(Request $request)
     {
-       // $path = storage_path('tmp/uploads');
-       $path = storage_path('app/public/images');
+        // $path = storage_path('tmp/uploads');
+        $path = storage_path('app/public/images');
         !file_exists($path) && mkdir($path, 0777, true);
         $file = $request->file('file');
         //$name = uniqid() . '_' . trim($file->getClientOriginalName());
@@ -101,11 +132,10 @@ class ItemController extends Controller
      */
     public function fileDestroy(Request $request)
     {
-        dd($request->all());
-        $path = storage_path('tmp/uploads/') . $request->filename;
+        $path = storage_path('app/public/images/') . $request->filename;
         //$path = public_path() . '/images/' . $request->filename;
         if (file_exists($path)) {
-            // ItemImagePivot::where('filename',$request->filename)->delete();
+            ItemImagePivot::where('image', $request->filename)->delete();
             unlink($path);
         }
         return $request->filename;
@@ -114,54 +144,29 @@ class ItemController extends Controller
     /**
      * Read the files resource from storage.
      */
-    public function readFilesxxx($id = "")
-    {
-        $directory = 'uploads';
-        $files_info = [];
-        $file_ext = array('png', 'jpg', 'jpeg', 'pdf');
-
-        // Read files
-        foreach (File::allFiles(public_path($directory)) as $file) {
-            $extension = strtolower($file->getExtension());
-
-            if (in_array($extension, $file_ext)) { // Check file extension 
-                $filename = $file->getFilename();
-                $size = $file->getSize(); // Bytes 
-                $sizeinMB = round($size / (1000 * 1024), 2); // MB 
-
-                if ($sizeinMB <= 2) { // Check file size is <= 2 MB 
-                    $files_info[] = array(
-                        "name" => $filename,
-                        "size" => $size,
-                        "path" => url($directory . '/' . $filename)
-                    );
-                }
-            }
-        }
-        return response()->json($files_info);
-    }
-
     public function readFiles($id = "")
     {
-        $images = ItemImagePivot::where('item_id',$id)->get()->toArray();        
-        foreach ($images as $image) {
-            $tableImages[] = $image['image'];
-        }
-        $storeFolder = storage_path('app/public/images');
-        $file_path = storage_path('app/public/images/');
-        $files = scandir($storeFolder);
+        $images = ItemImagePivot::where('item_id', $id)->get()->toArray();
         $data = [];
-        foreach ($files as $file) {
-            if ($file != '.' && $file != '..' && in_array($file, $tableImages)) {
-                $obj['name'] = $file;
-                $file_path = storage_path('app/public/images/') . $file;
-                $obj['size'] = filesize($file_path);
-                $obj['path'] = asset('storage/images/' . $file);
-                $data[] = $obj;
+        if (isset($images) && !empty($images)) {
+            foreach ($images as $image) {
+                $tableImages[] = $image['image'];
             }
+            $storeFolder = storage_path('app/public/images');
+            $file_path = storage_path('app/public/images/');
+            $files = scandir($storeFolder);
+            $data = [];
+            foreach ($files as $file) {
+                if ($file != '.' && $file != '..' && in_array($file, $tableImages)) {
+                    $obj['name'] = $file;
+                    $file_path = storage_path('app/public/images/') . $file;
+                    $obj['size'] = filesize($file_path);
+                    $obj['path'] = asset('storage/images/' . $file);
+                    $data[] = $obj;
+                }
 
+            }
         }
-        //dd($data);
         return response()->json($data);
     }
 

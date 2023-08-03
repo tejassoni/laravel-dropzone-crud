@@ -863,6 +863,7 @@
                 <form action="{{ route('item.update', $item->id) }}" name="form-edit" id="form-edit" method="POST"
                     enctype="multipart/form-data">
                     @csrf
+                    @method('PUT')
                     <div class="mb-4">
                         <label for="name" class="block mb-2 text-sm font-bold text-gray-700">Name<span
                                 class="text-red-500 text-danger"> *
@@ -906,7 +907,7 @@
                         <div>
                             <button type="submit" id="submit-all"
                                 class="inline-flex items-center px-4 py-2 my-3 text-xs font-semibold tracking-widest text-black uppercase transition duration-150 ease-in-out bg-gray-800 border border-transparent rounded-md hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25">
-                                Save
+                                Update
                             </button>
                         </div>
                 </form>
@@ -921,14 +922,14 @@
 
     <script type="text/javascript">
         var uploadedDocumentMap = {}
-        var maxFiles = 3;
-        var minFiles = 1;
+        var minFiles = 1; // minimum file must be to upload
+        var maxFiles = 3; // maximum file allows to upload
         var myDropzone = Dropzone.options.documentDropzone = {
             url: "{{ route('uploads') }}",
-            minFiles: 1,
-            maxFiles: 3,
+            minFiles: minFiles,
+            maxFiles: maxFiles,
             autoProcessQueue: true,
-            maxFilesize: 2, // MB
+            maxFilesize: 5, // MB
             addRemoveLinks: true,
             acceptedFiles: ".jpeg,.jpg,.png",
             timeout: 5000,
@@ -941,10 +942,8 @@
                 return time + file.name;
             },
             success: function(file, response) {
-                console.log('success calls');
                 console.log('success file');
                 console.log(file);
-                console.log('success response');
                 console.log(response);
                 $('form').append('<input type="hidden" name="document[]" value="' + response.name + '">')
                 uploadedDocumentMap[file.name] = response.name
@@ -953,8 +952,13 @@
                 console.log('remove calls');
                 console.log('remove file');
                 console.log(file);
-                // remove file from folder
-                // var filename = (typeof file.filename === "undefined") ? file.upload.filename : file.filename;
+                // remove uploaded file from table and storage folder starts
+                var filename = ''
+                if (file.hasOwnProperty('upload')) {
+                    filename = file.upload.filename;
+                } else {
+                    filename = file.name;
+                }
                 $.ajax({
                     type: 'POST',
                     url: "{{ url('image/delete') }}",
@@ -962,68 +966,92 @@
                         'X-CSRF-TOKEN': "{{ csrf_token() }}"
                     },
                     data: {
-                        filename: file.filename,
+                        filename: filename,
                     },
                     sucess: function(data) {
                         console.log('removed success: ' + data);
                     }
                 });
-
-                file.previewElement.remove()
-                var name = ''
-                if (typeof file.file_name !== 'undefined') {
-                    name = file.file_name
-                } else {
-                    name = uploadedDocumentMap[file.name]
-                }
-                $('form').find('input[name="document[]"][value="' + name + '"]').remove()
+                file.previewElement.remove();
+                // remove uploaded file from table and storage folder ends
+                // additional delete from multiple hidden files
+                $('form').find('input[name="document[]"][value="' + filename + '"]').remove();
             },
             maxfilesexceeded: function(file) {
-                this.removeAllFiles();
-                this.addFile(file);
+                // this.removeAllFiles();
+                // this.addFile(file);
+                // myDropZone.removeFile(file);
             },
             init: function() {
-                this.on("maxfilesexceeded", function(file) { // Maximum file upload validations                   
-                    alert("Maximum " + maxFiles + " files are allowed to upload...!");
-                });
-
-                // @if (isset($item) && $item->getImagesHasMany)
-                //     var files =
-                //         {!! json_encode($item->getImagesHasMany) !!}
-                //     for (var i in files) {
-                //         var file = files[i]
-                //         console.log('file')
-                //         console.log(file.image)
-                //         this.options.addedfile.call(this, file)
-                //         file.previewElement.classList.add('dz-complete')
-                //         $('form').append('<input type="hidden" name="document[]" value="' + file.image + '">')
-                //     }
-                // @endif
-
                 myDropzone = this;
+                // Read Files from tables and storage folder starts
                 $.ajax({
-                    url:"{{ url('readFiles') }}/{{ $item->id }}",
+                    url: "{{ url('readFiles') }}/{{ $item->id }}",
                     type: 'get',
                     dataType: 'json',
                     success: function(response) {
                         $.each(response, function(key, value) {
                             var mockFile = {
                                 name: value.name,
-                                size: value.size
+                                size: value.size,
+                                accepted: true,
+                                kind: 'image'
                             };
                             myDropzone.emit("addedfile", mockFile);
+                            myDropzone.files.push(mockFile);
                             myDropzone.emit("thumbnail", mockFile, value.path);
+                            // myDropzone.createThumbnailFromUrl(mockFile, value.path,
+                            //     function() {
+                            //         myDropzone.emit("complete", mockFile);
+                            //     });
                             myDropzone.emit("complete", mockFile);
+
+                            $('form').append('<input type="hidden" name="document[]" value="' +
+                                value.name + '">');
+                            uploadedDocumentMap[value.name] = value.name;
                         });
                     }
                 });
+                // Read Files from tables and storage folder ends
+
+                // maxfiles files limit upload validation starts
+                this.on("maxfilesexceeded", function(file) { 
+                    alert("Maximum " + maxFiles + " files are allowed to upload...!");
+                    return false;
+                });
+                // maximum files limit upload validation ends
+
+                // minimum files limit upload validation starts
+                var submitButton = document.querySelector("#submit-all");
+                myDropzone = this;
+                submitButton.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    var imagelength = Object.keys(uploadedDocumentMap).length;
+                    if(imagelength < minFiles ){
+                        alert("Minimum "+minFiles+" file needs to upload...!");
+                        return false;
+                    }else{
+                        $('#form-create').submit();
+                    }
+                    /*Dropzone.forElement(".dropzone").options.autoProcessQueue = false;
+                    if (myDropzone.getQueuedFiles().length >= minFiles) {
+                        //myDropzone.processQueue();
+                        Dropzone.forElement(".dropzone").options.autoProcessQueue = true;                        
+                        Dropzone.forElement(".dropzone").processQueue();
+                        $('#form-create').submit();
+                    } else { // Minimum file upload validations
+                        Dropzone.forElement(".dropzone").options.autoProcessQueue = false;
+                        alert("Minimum "+minFiles+" file needs to upload...!");
+                        return false;
+                    }*/
+                });
+                // minimum files limit upload validation ends
             },
             error: function(file, response) {
-                console.log('error calls')
                 console.log('error file')
                 console.log(file)
-                console.log('error response')
                 console.log(response)
+                $(file.previewElement).remove(); // removed files if validation fails
                 return false;
             }
         }

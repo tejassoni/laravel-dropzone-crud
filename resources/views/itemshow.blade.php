@@ -4,8 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="_token" content="{{csrf_token()}}" />
-    <title>Item : Create</title>
+    <title>Item : Show</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -13,9 +12,6 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/dropzone.min.css') }}" rel="stylesheet">
-
     <!-- Styles -->
     <style>
         /* ! tailwindcss v3.2.4 | MIT License | https://tailwindcss.com */
@@ -839,191 +835,50 @@
 <body class="antialiased">
     <div class="max-w-7xl mx-auto p-6 lg:p-8">
         <div class="flex justify-center font-semibold text-xl text-gray-800 leading-tight">
-            Item Create
+            Item Show
         </div>
     </div>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg px-4 py-4">
+
+
+
+                <div class="mb-4">
+                    <label for="name" class="block mb-2 text-sm font-bold text-gray-700">Name</label>
+                    <input type="text" name="name" class="form-control" value="{{ $item->name }}" readonly
+                        disabled>
+                </div>
+
+                <div class="mb-4">
+                    <label for="sku" class="block mb-2 text-sm font-bold text-gray-700">Sku</label>
+                    <input type="text" name="sku" class="form-control" value="{{ $item->sku }}" readonly
+                        disabled>
+                </div>
+
+                <div class="mb-4">
+                    <label for="price" class="block mb-2 text-sm font-bold text-gray-700">Price</label>
+                    <input type="text" name="price" id="price" class="form-control" value="{{ $item->price }}"
+                        readonly disabled>
+                </div>
+
+                <div class="mb-12 d-flex gap-5">
+                    <label for="image" class="block mb-2 text-sm font-bold text-gray-700">Document</label>
+                    @foreach ($item->getImagesHasMany as $image)
+                        <img class="justify-content-center" src="{{ asset('storage/images/' . $image->image) }}"
+                            alt="sample" height="150" width="150" />
+                    @endforeach
+                </div>
+                <br><br><br>
                 <a href="{{ route('item.index') }}"
                     class="inline-flex items-center px-4 py-2 mb-4 text-xs font-semibold tracking-widest uppercase transition duration-150 ease-in-out bg-green-600 border border-transparent rounded-md hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:shadow-outline-gray disabled:opacity-25">
                     Back
                 </a>
-
-                @if ($message = Session::get('error'))
-                    <div class="bg-green-100 border-t-4 border-green-500 rounded-b text-green-900 px-4 py-3 shadow-md my-3"
-                        role="alert">
-                        <div class="flex">
-                            <div>
-                                <p class="text-sm text-danger">{{ $message }}</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-                <form action="{{ route('item.store') }}" name="form-create" id="form-create" method="POST"
-                    enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="name" class="block mb-2 text-sm font-bold text-gray-700">Name<span
-                                class="text-red-500 text-danger"> *
-                            </span></label>
-                        <input type="text" name="name" class="form-control" placeholder="Enter Name"
-                            maxlength="50" value="{{ old('name') }}">
-                        @error('name')
-                            <span class="text-red-500 text-danger">{{ $message }}
-                            </span>
-                        @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="sku" class="block mb-2 text-sm font-bold text-gray-700">Sku<span
-                                class="text-red-500 text-danger"> *
-                            </span></label>
-                        <input type="text" name="sku" class="form-control" placeholder="Enter SKU" maxlength="5"
-                            value="{{ old('sku') }}">
-                        @error('sku')
-                            <span class="text-red-500 text-danger">{{ $message }}
-                            </span>
-                        @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="price" class="block mb-2 text-sm font-bold text-gray-700">Price<span
-                                class="text-red-500 text-danger"> *
-                            </span></label>
-                        <input type="text" name="price" id="price" class="form-control"
-                            placeholder="Enter Price" maxlength="50" value="{{ old('price') }}">
-                        @error('price')
-                            <span class="text-red-500 text-danger">{{ $message }}
-                            </span>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="document">Documents</label>
-                        <div class="needsclick dropzone" id="document-dropzone">
-                        </div>
-                        <div>
-                            <button type="submit" id="submit-all"
-                                class="inline-flex items-center px-4 py-2 my-3 text-xs font-semibold tracking-widest text-black uppercase transition duration-150 ease-in-out bg-gray-800 border border-transparent rounded-md hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25">
-                                Save
-                            </button>
-                        </div>
-                </form>
             </div>
         </div>
     </div>
-
-    <script type='text/javascript' src="{{ asset('js/jquery-3.6.4.min.js') }}"></script>
-    <script type='text/javascript' src="{{ asset('js/datatables.min.js') }}"></script>
     <script type='text/javascript' src="{{ asset('js/bootstrap.min.js') }}"></script>
-    <script type='text/javascript' src="{{ asset('js/dropzone.min.js') }}"></script>
 
-    <script type="text/javascript">
-        var uploadedDocumentMap = {}        
-        var minFiles = 1; // minimum file must be to upload
-        var maxFiles = 3; // maximum file allows to upload
-        var myDropzone = Dropzone.options.documentDropzone = {
-            url: "{{ route('uploads') }}",
-            minFiles: minFiles,
-            maxFiles: maxFiles,
-            autoProcessQueue: true,
-            maxFilesize: 5, // MB
-            addRemoveLinks: true,
-            acceptedFiles: ".jpeg,.jpg,.png",
-            timeout: 5000,
-            headers: {
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            },
-            renameFile: function(file) {
-                var dt = new Date();
-                var time = dt.getTime();
-               return time+file.name;
-            },
-            success: function(file, response) {
-                console.log('success file');
-                console.log(file);
-                console.log(response);
-                $('form').append('<input type="hidden" name="document[]" value="' + response.name + '">')
-                uploadedDocumentMap[file.name] = response.name
-            },
-            removedfile: function(file) {
-                console.log('remove file');
-                console.log(file);                                
-                // remove uploaded file from table and storage folder starts
-                var filename = ''
-                if (file.hasOwnProperty('upload')) {
-                    filename = file.upload.filename;
-                }else{
-                    filename = file.name;
-                }
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ url('image/delete') }}",
-                    headers: {
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                    },
-                    data: {
-                        filename: filename,                        
-                    },
-                    sucess: function(data) {
-                        console.log('removed success: ' + data);
-                    }
-                });
-                file.previewElement.remove();
-                // remove uploaded file from table and storage folder ends
-                // additional delete from multiple hidden files
-                $('form').find('input[name="document[]"][value="' + filename + '"]').remove()
-            },
-            maxfilesexceeded: function(file) {
-                //this.removeAllFiles();
-                //this.addFile(file);
-                //myDropZone.removeFile(file);
-            },
-            init: function() {
-                // maxfiles files limit upload validation starts
-                this.on("maxfilesexceeded", function(file) { // Maximum file upload validations                   
-                    alert("Maximum " + maxFiles + " files are allowed to upload...!");
-                    return false;
-                });
-                // maximum files limit upload validation ends
-                
-                // minimum files limit upload validation starts
-                var submitButton = document.querySelector("#submit-all");
-                myDropzone = this;
-                submitButton.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    var imagelength = Object.keys(uploadedDocumentMap).length;
-                    if(imagelength < minFiles ){
-                        alert("Minimum "+minFiles+" file needs to upload...!");
-                        return false;
-                    }else{
-                        $('#form-create').submit();
-                    }
-                    /*Dropzone.forElement(".dropzone").options.autoProcessQueue = false;
-                    if (myDropzone.getQueuedFiles().length >= minFiles) {
-                        //myDropzone.processQueue();
-                        Dropzone.forElement(".dropzone").options.autoProcessQueue = true;                        
-                        Dropzone.forElement(".dropzone").processQueue();
-                        $('#form-create').submit();
-                    } else { // Minimum file upload validations
-                        Dropzone.forElement(".dropzone").options.autoProcessQueue = false;
-                        alert("Minimum "+minFiles+" file needs to upload...!");
-                        return false;
-                    }*/
-                });
-                // minimum files limit upload validation ends
-            },
-            error: function(file, response) {
-                console.log('error file')
-                console.log(file)
-                console.log(response)
-                $(file.previewElement).remove(); // removed files if validation fails
-                return false;
-            }
-        }
-
-    </script>
 </body>
 
 </html>

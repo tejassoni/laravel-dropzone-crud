@@ -972,6 +972,10 @@
                         console.log('removed success: ' + data);
                     }
                 });
+
+                // remove file name from uploadedDocumentMap object
+                Reflect.deleteProperty(uploadedDocumentMap, file.name);
+
                 file.previewElement.remove();
                 // remove uploaded file from table and storage folder ends
                 // additional delete from multiple hidden files
@@ -983,6 +987,7 @@
                 // myDropZone.removeFile(file);
             },
             init: function() {
+                console.log('init calls');
                 myDropzone = this;
                 // Read Files from tables and storage folder starts
                 $.ajax({
@@ -1015,7 +1020,7 @@
                 // Read Files from tables and storage folder ends
 
                 // maxfiles files limit upload validation starts
-                this.on("maxfilesexceeded", function(file) { 
+                this.on("maxfilesexceeded", function(file) {
                     alert("Maximum " + maxFiles + " files are allowed to upload...!");
                     return false;
                 });
@@ -1027,11 +1032,12 @@
                 submitButton.addEventListener("click", function(e) {
                     e.preventDefault();
                     var imagelength = Object.keys(uploadedDocumentMap).length;
-                    if(imagelength < minFiles ){
-                        alert("Minimum "+minFiles+" file needs to upload...!");
+                    console.log(imagelength)
+                    if (imagelength < minFiles) {
+                        alert("Minimum " + minFiles + " file needs to upload...!");
                         return false;
-                    }else{
-                        $('#form-create').submit();
+                    } else {
+                        $('#form-edit').submit();
                     }
                     /*Dropzone.forElement(".dropzone").options.autoProcessQueue = false;
                     if (myDropzone.getQueuedFiles().length >= minFiles) {

@@ -970,6 +970,10 @@
                         console.log('removed success: ' + data);
                     }
                 });
+
+                // remove file name from uploadedDocumentMap object
+                Reflect.deleteProperty(uploadedDocumentMap, file.name);
+                
                 file.previewElement.remove();
                 // remove uploaded file from table and storage folder ends
                 // additional delete from multiple hidden files
@@ -981,6 +985,7 @@
                 //myDropZone.removeFile(file);
             },
             init: function() {
+                console.log('init calls');
                 // maxfiles files limit upload validation starts
                 this.on("maxfilesexceeded", function(file) { // Maximum file upload validations                   
                     alert("Maximum " + maxFiles + " files are allowed to upload...!");

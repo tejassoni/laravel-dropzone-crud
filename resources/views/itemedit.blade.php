@@ -11,11 +11,12 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
+    <!-- KEY : DROPZONE starts -->
     <!-- Styles -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dropzone.min.css') }}" rel="stylesheet">
-
+    <!-- KEY : DROPZONE ends -->
     <!-- Styles -->
     <style>
         /* ! tailwindcss v3.2.4 | MIT License | https://tailwindcss.com */
@@ -899,7 +900,7 @@
                             </span>
                         @enderror
                     </div>
-
+                    <!-- KEY : DROPZONE starts -->
                     <div class="form-group">
                         <label for="document">Documents</label>
                         <div class="needsclick dropzone" id="document-dropzone">
@@ -910,11 +911,14 @@
                                 Update
                             </button>
                         </div>
+                    </div>
+                    <!-- KEY : DROPZONE ends -->
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- KEY : DROPZONE starts -->
     <script type='text/javascript' src="{{ asset('js/jquery-3.6.4.min.js') }}"></script>
     <script type='text/javascript' src="{{ asset('js/datatables.min.js') }}"></script>
     <script type='text/javascript' src="{{ asset('js/bootstrap.min.js') }}"></script>
@@ -1062,6 +1066,7 @@
             }
         }
     </script>
+    <!-- KEY : DROPZONE ends -->
 </body>
 
 </html>

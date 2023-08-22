@@ -55,5 +55,5 @@ Server Requirements
 
 # Search Key
 <ol>
-  <li>KEY : LIVEWIRE</li>
+  <li>KEY : DROPZONE</li>
 </ol>

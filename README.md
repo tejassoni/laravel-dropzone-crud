@@ -17,6 +17,7 @@ Server Requirements
   <li>Name : [ Validation Rules : Max 100 length, Alphanumeric, Required ] </li>
   <li>Sku : [ Validation Rules : Max 5 length, Alphanumeric, Required ]</li>
   <li>Price : [ Validation Rules : 2 Digit Decimal Allowed, Required ]</li>
+  <li>Dropzone Images : [ Validation Rules : Min : 20 and Max : 35 Allowed,Image format Excepted JPG, PNG only, Required ]</li>
 </ul>
 
 # Laravel / PHP Coding Standards

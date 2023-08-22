@@ -1,5 +1,5 @@
 # Overview
-Laravel CRUD operations with <a href="https://docs.dropzone.dev/" target="_blank">Dropzone</a> Item details crud module.
+Laravel CRUD operations with <a href="https://docs.dropzone.dev/" target="_blank">Dropzone</a> Item details crud module. Without Auth login or registration using <a href="https://getbootstrap.com/" target="_blank"> Bootstrap</a> and <a href="https://datatables.net/" target="_blank"> Datatable.</a>
 
 Server Requirements
 =====================================
@@ -16,7 +16,7 @@ Server Requirements
   <li>Item Fields</li>
   <li>Name : [ Validation Rules : Max 100 length, Alphanumeric, Required ] </li>
   <li>Sku : [ Validation Rules : Max 5 length, Alphanumeric, Required ]</li>
-  <li>Price : [ Validation Rules : 2 Digit Decimal Allowed, Required ]</li>
+  <li>Price : [ Validation Rules : 2 Digit Decimal Allowed, Max Digit 9999999999.99, Required ]</li>
   <li>Dropzone Images : [ Validation Rules : Min : 20 and Max : 35 Allowed,Image format Excepted JPG, PNG only, Required ]</li>
 </ul>
 
